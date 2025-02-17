@@ -115,5 +115,4 @@ This project is licensed under the **MIT License**.
 
 ## 📩 Contact
 For any inquiries or support, reach out at:  
-📧 hitthecodelabs@gmail.com  
 🌍 [GitHub](https://github.com/hitthecodelabs/GeozoneChecker)
