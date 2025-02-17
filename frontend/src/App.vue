@@ -8,12 +8,12 @@
 
 <script>
 import MapView from "./components/MapView.vue";
-import UploadFile from "./components/UploadFile.vue";
+// import UploadFile from "./components/UploadFile.vue";
 
 export default {
   components: {
     MapView,
-    UploadFile
+    // UploadFile
   }
 };
 </script>
