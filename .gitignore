@@ -1,0 +1,7 @@
+# Ignore environment and dependencies
+venv/
+node_modules/
+__pycache__/
+.env
+uploads/
+
