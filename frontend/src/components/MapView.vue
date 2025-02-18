@@ -49,7 +49,6 @@
         map: null,
         tileLayer: null,
         uploadedLayer: null,
-        // Flag to track polygon visibility
         isHidden: false,
         cursorLat: 0,
         cursorLng: 0,
@@ -101,9 +100,10 @@
               return;
             }
           } else if (file.name.endsWith(".kml")) {
-            // Convert KML to GeoJSON using toGeoJSON
+            // Remove the "kml:" namespace prefixes before parsing
+            const kmlString = data.replace(/(<\/?)kml:/g, '$1');
             const parser = new DOMParser();
-            const kml = parser.parseFromString(data, "text/xml");
+            const kml = parser.parseFromString(kmlString, "text/xml");
             geojsonData = toGeoJSON.kml(kml);
           } else {
             console.error("Unsupported file type.");
@@ -117,9 +117,7 @@
     
           // Add the new GeoJSON layer and ensure it's visible
           this.uploadedLayer = L.geoJSON(geojsonData, {
-            style: {
-              color: "red"
-            }
+            style: { color: "red" }
           }).addTo(this.map);
     
           // Reset visibility flag
@@ -128,7 +126,23 @@
           // Zoom to the bounds of the uploaded layer (if valid)
           const bounds = this.uploadedLayer.getBounds();
           if (bounds.isValid()) {
-            this.map.fitBounds(bounds);
+            const center = bounds.getCenter();
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            const latDiff = Math.abs(ne.lat - sw.lat);
+            const lngDiff = Math.abs(ne.lng - sw.lng);
+    
+            if (latDiff < 0.0001 && lngDiff < 0.0001) {
+              this.map.setView(center, 18);
+            } else if (latDiff < 0.001 || lngDiff < 0.001) {
+              const newBounds = L.latLngBounds(
+                [center.lat - 0.005, center.lng - 0.005],
+                [center.lat + 0.005, center.lng + 0.005]
+              );
+              this.map.fitBounds(newBounds, { padding: [20, 20], maxZoom: 18 });
+            } else {
+              this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
+            }
           }
         };
     
@@ -137,11 +151,9 @@
       toggleVisibility() {
         if (this.uploadedLayer) {
           if (!this.isHidden) {
-            // Hide the polygon by removing it from the map
             this.map.removeLayer(this.uploadedLayer);
             this.isHidden = true;
           } else {
-            // Show the polygon by adding it back to the map
             this.uploadedLayer.addTo(this.map);
             this.isHidden = false;
           }
@@ -152,7 +164,6 @@
           this.map.removeLayer(this.uploadedLayer);
           this.uploadedLayer = null;
           this.isHidden = false;
-          // Clear file input value so a new file with the same name can be loaded.
           this.$refs.fileInput.value = "";
         }
       }
