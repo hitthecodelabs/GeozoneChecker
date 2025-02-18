@@ -1,5 +1,4 @@
-// MapView.vue
-
+<!-- MapView.vue -->
 <template>
     <div id="map-container">
       <!-- Title -->
@@ -13,10 +12,9 @@
       <!-- File Upload Input with ref -->
       <input type="file" @change="onFileChange" ref="fileInput" accept=".geojson,.kml" />
       
-      <!-- Loading Indicator with Progress Bar -->
-      <div v-if="loading" class="loading-container">
-        <div class="loading-bar" :style="{ width: loadingProgress + '%' }"></div>
-        <div class="loading-text">Loading file... {{ loadingProgress }}%</div>
+      <!-- Loading Indicator (spinner only) -->
+      <div v-if="loading" class="loading-indicator">
+        <div class="spinner"></div>
       </div>
       
       <!-- Toggle and Delete Buttons (shown only if a file has been loaded) -->
@@ -46,7 +44,6 @@
   <script>
   import L from "leaflet";
   import "leaflet/dist/leaflet.css";
-  // Use a namespace import for toGeoJSON
   import * as toGeoJSON from "togeojson";
   
   export default {
@@ -57,7 +54,6 @@
         uploadedLayer: null,
         isHidden: false,
         loading: false,
-        loadingProgress: 0,
         cursorLat: 0,
         cursorLng: 0,
         selectedTile: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -79,6 +75,8 @@
         this.tileLayer = L.tileLayer(this.selectedTile, {
           attribution: "&copy; OpenStreetMap contributors"
         }).addTo(this.map);
+  
+        // Update cursor position on mouse move
         this.map.on("mousemove", this.updateCursorPosition);
       },
       updateTileLayer() {
@@ -94,85 +92,86 @@
       onFileChange(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+  
+        // Show loading spinner
         this.loading = true;
-        this.loadingProgress = 0;
-        
-        const reader = new FileReader();
-        reader.onprogress = (e) => {
-          if (e.lengthComputable) {
-            this.loadingProgress = Math.round((e.loaded / e.total) * 100);
-          }
-        };
-        reader.onload = (e) => {
-          const data = e.target.result;
-          let geojsonData;
-    
-          if (file.name.endsWith(".geojson")) {
-            try {
-              geojsonData = JSON.parse(data);
-            } catch (err) {
-              console.error("Error parsing GeoJSON:", err);
+  
+        // Give the DOM time to render the spinner before heavy parsing
+        this.$nextTick(() => {
+          setTimeout(() => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const data = e.target.result;
+              let geojsonData;
+  
+              if (file.name.endsWith(".geojson")) {
+                try {
+                  geojsonData = JSON.parse(data);
+                } catch (err) {
+                  console.error("Error parsing GeoJSON:", err);
+                  this.loading = false;
+                  return;
+                }
+              } else if (file.name.endsWith(".kml")) {
+                // Remove "kml:" prefixes
+                const kmlString = data.replace(/(<\/?)kml:/g, '$1');
+                const parser = new DOMParser();
+                const kml = parser.parseFromString(kmlString, "text/xml");
+                geojsonData = toGeoJSON.kml(kml);
+              } else {
+                console.error("Unsupported file type.");
+                this.loading = false;
+                return;
+              }
+  
+              // Remove previous layer if it exists
+              if (this.uploadedLayer) {
+                this.map.removeLayer(this.uploadedLayer);
+              }
+  
+              // Add new layer
+              this.uploadedLayer = L.geoJSON(geojsonData, {
+                style: { color: "red" }
+              }).addTo(this.map);
+  
+              // Show polygons
+              this.isHidden = false;
+  
+              // Fit map to layer bounds
+              const bounds = this.uploadedLayer.getBounds();
+              if (bounds.isValid()) {
+                const center = bounds.getCenter();
+                const ne = bounds.getNorthEast();
+                const sw = bounds.getSouthWest();
+                const latDiff = Math.abs(ne.lat - sw.lat);
+                const lngDiff = Math.abs(ne.lng - sw.lng);
+  
+                // Adjust zoom based on bounds size
+                if (latDiff < 0.0001 && lngDiff < 0.0001) {
+                  this.map.setView(center, 18);
+                } else if (latDiff < 0.001 || lngDiff < 0.001) {
+                  const newBounds = L.latLngBounds(
+                    [center.lat - 0.005, center.lng - 0.005],
+                    [center.lat + 0.005, center.lng + 0.005]
+                  );
+                  this.map.fitBounds(newBounds, { padding: [20, 20], maxZoom: 18 });
+                } else {
+                  this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
+                }
+              }
+  
+              // Hide loading spinner
               this.loading = false;
-              return;
-            }
-          } else if (file.name.endsWith(".kml")) {
-            // Remove the "kml:" namespace prefixes before parsing
-            const kmlString = data.replace(/(<\/?)kml:/g, '$1');
-            const parser = new DOMParser();
-            const kml = parser.parseFromString(kmlString, "text/xml");
-            geojsonData = toGeoJSON.kml(kml);
-          } else {
-            console.error("Unsupported file type.");
-            this.loading = false;
-            return;
-          }
-    
-          // Remove previous uploaded layer if it exists
-          if (this.uploadedLayer) {
-            this.map.removeLayer(this.uploadedLayer);
-          }
-    
-          // Add the new GeoJSON layer and ensure it's visible
-          this.uploadedLayer = L.geoJSON(geojsonData, {
-            style: { color: "red" }
-          }).addTo(this.map);
-    
-          // Reset visibility flag
-          this.isHidden = false;
-    
-          // Zoom to the bounds of the uploaded layer (if valid)
-          const bounds = this.uploadedLayer.getBounds();
-          if (bounds.isValid()) {
-            const center = bounds.getCenter();
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
-            const latDiff = Math.abs(ne.lat - sw.lat);
-            const lngDiff = Math.abs(ne.lng - sw.lng);
-    
-            if (latDiff < 0.0001 && lngDiff < 0.0001) {
-              this.map.setView(center, 18);
-            } else if (latDiff < 0.001 || lngDiff < 0.001) {
-              const newBounds = L.latLngBounds(
-                [center.lat - 0.005, center.lng - 0.005],
-                [center.lat + 0.005, center.lng + 0.005]
-              );
-              this.map.fitBounds(newBounds, { padding: [20, 20], maxZoom: 18 });
-            } else {
-              this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
-            }
-          }
-          this.loading = false;
-          this.loadingProgress = 0;
-        };
-    
-        reader.onerror = () => {
-          console.error("Error reading file");
-          this.loading = false;
-          this.loadingProgress = 0;
-        };
-    
-        reader.readAsText(file);
+            };
+  
+            reader.onerror = () => {
+              console.error("Error reading file");
+              this.loading = false;
+            };
+  
+            reader.readAsText(file);
+          }, 50);
+        });
       },
       toggleVisibility() {
         if (this.uploadedLayer) {
@@ -190,6 +189,7 @@
           this.map.removeLayer(this.uploadedLayer);
           this.uploadedLayer = null;
           this.isHidden = false;
+          // Reset file input
           this.$refs.fileInput.value = "";
         }
       }
@@ -197,7 +197,10 @@
   };
   </script>
   
-  <style scoped>
+  <style>
+  /* No 'scoped' so keyframes and global classes work */
+  
+  /* Map */
   #map {
     height: 500px;
     width: 100%;
@@ -206,6 +209,7 @@
     margin-top: 10px;
   }
   
+  /* Dropdown for tiles */
   select {
     position: absolute;
     top: 10px;
@@ -219,6 +223,7 @@
     cursor: pointer;
   }
   
+  /* Coordinate display */
   #coordinate-display {
     background: rgba(0, 0, 0, 0.7);
     color: white;
@@ -229,41 +234,43 @@
     margin-bottom: 10px;
   }
   
+  /* File input */
   input[type="file"] {
     display: block;
     margin-bottom: 10px;
   }
   
-  .loading-container {
+  /* Loading indicator container */
+  .loading-indicator {
     margin-bottom: 10px;
-    background: #eee;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    position: relative;
-    height: 20px;
-    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
   }
   
-  .loading-bar {
-    background: #007bff;
-    height: 100%;
-    transition: width 0.3s;
+  /* Spinner (the only loading indicator now) */
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border: 5px solid #ccc;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
   
-  .loading-text {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 12px;
-    line-height: 20px;
-    color: #333;
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
   
+  /* Buttons container */
   .button-container {
     margin-bottom: 10px;
   }
   
+  /* Shared button styling */
   button {
     margin-right: 10px;
     padding: 8px 12px;
