@@ -30,12 +30,17 @@
       <!-- Map Container -->
       <div id="map"></div>
       
-      <!-- Dropdown for Tile Selection -->
-      <select v-model="selectedTile" @change="updateTileLayer">
-        <option v-for="(url, name) in tileLayers" :key="name" :value="url">
+      <!-- Custom Basemap Options -->
+      <div class="basemap-options">
+        <div 
+          v-for="(url, name) in tileLayers" 
+          :key="name" 
+          class="basemap-option"
+          :class="{ active: selectedTile === url }"
+          @click="changeBasemap(url)">
           {{ name }}
-        </option>
-      </select>
+        </div>
+      </div>
     </div>
   </template>
   
@@ -54,6 +59,7 @@
         loading: false,
         cursorLat: 0,
         cursorLng: 0,
+        // Default basemap is OpenStreetMap
         selectedTile: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         tileLayers: {
           "OpenStreetMap": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -73,8 +79,6 @@
         this.tileLayer = L.tileLayer(this.selectedTile, {
           attribution: "&copy; OpenStreetMap contributors"
         }).addTo(this.map);
-    
-        // Update cursor position on mouse move
         this.map.on("mousemove", this.updateCursorPosition);
       },
       updateTileLayer() {
@@ -127,7 +131,7 @@
                 this.map.removeLayer(this.uploadedLayer);
               }
     
-              // Add new layer with blue color instead of red
+              // Add new layer with blue color
               this.uploadedLayer = L.geoJSON(geojsonData, {
                 style: { color: "blue" }
               }).addTo(this.map);
@@ -144,7 +148,6 @@
                 const latDiff = Math.abs(ne.lat - sw.lat);
                 const lngDiff = Math.abs(ne.lng - sw.lng);
     
-                // Adjust zoom based on bounds size
                 if (latDiff < 0.0001 && lngDiff < 0.0001) {
                   this.map.setView(center, 18);
                 } else if (latDiff < 0.001 || lngDiff < 0.001) {
@@ -187,16 +190,19 @@
           this.map.removeLayer(this.uploadedLayer);
           this.uploadedLayer = null;
           this.isHidden = false;
-          // Reset file input
           this.$refs.fileInput.value = "";
         }
+      },
+      changeBasemap(url) {
+        this.selectedTile = url;
+        this.updateTileLayer();
       }
     }
   };
   </script>
   
   <style>
-  /* No 'scoped' so keyframes and global classes work */
+  /* Global styles */
   
   /* Map */
   #map {
@@ -207,19 +213,36 @@
     margin-top: 10px;
   }
   
-  /* Dropdown for tiles */
-  select {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    padding: 5px;
-    border: none;
-    background: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
+  /* Basemap Options Container */
+  .basemap-options {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    gap: 10px;
   }
+  
+  /* Each Basemap Option */
+  .basemap-option {
+    cursor: pointer;
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  
+  .basemap-option:hover {
+    background: #e0e0e0;
+  }
+  
+  .basemap-option.active {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+  }
+  
+  /* Dropdown for tiles (removed since custom basemap options are used) */
   
   /* Coordinate display */
   #coordinate-display {
