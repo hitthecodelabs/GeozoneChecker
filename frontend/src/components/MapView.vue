@@ -1,5 +1,3 @@
-// MapView.vue
-
 <template>
     <div id="map-container">
       <!-- Title -->
@@ -12,6 +10,13 @@
       
       <!-- File Upload Input with ref -->
       <input type="file" @change="onFileChange" ref="fileInput" accept=".geojson,.kml" />
+      
+      <!-- Loading Indicator with Animated "Train" -->
+      <div v-if="loading" class="loading-indicator">
+        <div class="loading-track">
+          <div class="loading-train"></div>
+        </div>
+      </div>
       
       <!-- Toggle and Delete Buttons (shown only if a file has been loaded) -->
       <div v-if="uploadedLayer" class="button-container">
@@ -50,6 +55,7 @@
         tileLayer: null,
         uploadedLayer: null,
         isHidden: false,
+        loading: false,
         cursorLat: 0,
         cursorLng: 0,
         selectedTile: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -86,7 +92,9 @@
       onFileChange(event) {
         const file = event.target.files[0];
         if (!file) return;
-    
+        
+        this.loading = true;
+        
         const reader = new FileReader();
         reader.onload = (e) => {
           const data = e.target.result;
@@ -97,6 +105,7 @@
               geojsonData = JSON.parse(data);
             } catch (err) {
               console.error("Error parsing GeoJSON:", err);
+              this.loading = false;
               return;
             }
           } else if (file.name.endsWith(".kml")) {
@@ -107,6 +116,7 @@
             geojsonData = toGeoJSON.kml(kml);
           } else {
             console.error("Unsupported file type.");
+            this.loading = false;
             return;
           }
     
@@ -144,6 +154,12 @@
               this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
             }
           }
+          this.loading = false;
+        };
+    
+        reader.onerror = () => {
+          console.error("Error reading file");
+          this.loading = false;
         };
     
         reader.readAsText(file);
@@ -206,6 +222,39 @@
   input[type="file"] {
     display: block;
     margin-bottom: 10px;
+  }
+  
+  /* Animated Loading Indicator */
+  .loading-indicator {
+    margin-bottom: 10px;
+  }
+  
+  .loading-track {
+    width: 100%;
+    height: 4px;
+    background-color: #ccc;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .loading-train {
+    width: 20px;
+    height: 20px;
+    background-color: #007bff;
+    border-radius: 50%;
+    position: absolute;
+    top: -8px;
+    animation: trainMove 1.5s linear infinite;
+  }
+  
+  @keyframes trainMove {
+    0% {
+      left: -20px;
+    }
+    100% {
+      left: 100%;
+    }
   }
   
   .button-container {
