@@ -1,4 +1,7 @@
 # Ignore environment and dependencies
+backend/
+env_zones/
+GeozoneChecker/
 venv/
 node_modules/
 __pycache__/
