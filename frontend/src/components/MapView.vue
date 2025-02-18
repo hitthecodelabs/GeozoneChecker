@@ -1,3 +1,5 @@
+// MapView.vue
+
 <template>
     <div id="map-container">
       <!-- Title -->
@@ -11,11 +13,10 @@
       <!-- File Upload Input with ref -->
       <input type="file" @change="onFileChange" ref="fileInput" accept=".geojson,.kml" />
       
-      <!-- Loading Indicator with Animated "Train" -->
-      <div v-if="loading" class="loading-indicator">
-        <div class="loading-track">
-          <div class="loading-train"></div>
-        </div>
+      <!-- Loading Indicator with Progress Bar -->
+      <div v-if="loading" class="loading-container">
+        <div class="loading-bar" :style="{ width: loadingProgress + '%' }"></div>
+        <div class="loading-text">Loading file... {{ loadingProgress }}%</div>
       </div>
       
       <!-- Toggle and Delete Buttons (shown only if a file has been loaded) -->
@@ -56,6 +57,7 @@
         uploadedLayer: null,
         isHidden: false,
         loading: false,
+        loadingProgress: 0,
         cursorLat: 0,
         cursorLng: 0,
         selectedTile: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -94,8 +96,14 @@
         if (!file) return;
         
         this.loading = true;
+        this.loadingProgress = 0;
         
         const reader = new FileReader();
+        reader.onprogress = (e) => {
+          if (e.lengthComputable) {
+            this.loadingProgress = Math.round((e.loaded / e.total) * 100);
+          }
+        };
         reader.onload = (e) => {
           const data = e.target.result;
           let geojsonData;
@@ -155,11 +163,13 @@
             }
           }
           this.loading = false;
+          this.loadingProgress = 0;
         };
     
         reader.onerror = () => {
           console.error("Error reading file");
           this.loading = false;
+          this.loadingProgress = 0;
         };
     
         reader.readAsText(file);
@@ -224,37 +234,30 @@
     margin-bottom: 10px;
   }
   
-  /* Animated Loading Indicator */
-  .loading-indicator {
+  .loading-container {
     margin-bottom: 10px;
-  }
-  
-  .loading-track {
-    width: 100%;
-    height: 4px;
-    background-color: #ccc;
-    border-radius: 2px;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     position: relative;
-    overflow: hidden;
-  }
-  
-  .loading-train {
-    width: 20px;
     height: 20px;
-    background-color: #007bff;
-    border-radius: 50%;
-    position: absolute;
-    top: -8px;
-    animation: trainMove 1.5s linear infinite;
+    width: 100%;
   }
   
-  @keyframes trainMove {
-    0% {
-      left: -20px;
-    }
-    100% {
-      left: 100%;
-    }
+  .loading-bar {
+    background: #007bff;
+    height: 100%;
+    transition: width 0.3s;
+  }
+  
+  .loading-text {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    line-height: 20px;
+    color: #333;
   }
   
   .button-container {
