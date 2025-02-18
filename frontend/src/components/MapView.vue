@@ -1,8 +1,6 @@
 <!-- MapView.vue -->
 <template>
     <div id="map-container">
-      <!-- Title -->
-      <h1>Map Title</h1>
       
       <!-- Coordinate Display -->
       <div id="coordinate-display">
@@ -75,7 +73,7 @@
         this.tileLayer = L.tileLayer(this.selectedTile, {
           attribution: "&copy; OpenStreetMap contributors"
         }).addTo(this.map);
-  
+    
         // Update cursor position on mouse move
         this.map.on("mousemove", this.updateCursorPosition);
       },
@@ -92,10 +90,10 @@
       onFileChange(event) {
         const file = event.target.files[0];
         if (!file) return;
-  
+    
         // Show loading spinner
         this.loading = true;
-  
+    
         // Give the DOM time to render the spinner before heavy parsing
         this.$nextTick(() => {
           setTimeout(() => {
@@ -103,7 +101,7 @@
             reader.onload = (e) => {
               const data = e.target.result;
               let geojsonData;
-  
+    
               if (file.name.endsWith(".geojson")) {
                 try {
                   geojsonData = JSON.parse(data);
@@ -123,20 +121,20 @@
                 this.loading = false;
                 return;
               }
-  
+    
               // Remove previous layer if it exists
               if (this.uploadedLayer) {
                 this.map.removeLayer(this.uploadedLayer);
               }
-  
-              // Add new layer
+    
+              // Add new layer with blue color instead of red
               this.uploadedLayer = L.geoJSON(geojsonData, {
-                style: { color: "red" }
+                style: { color: "blue" }
               }).addTo(this.map);
-  
+    
               // Show polygons
               this.isHidden = false;
-  
+    
               // Fit map to layer bounds
               const bounds = this.uploadedLayer.getBounds();
               if (bounds.isValid()) {
@@ -145,7 +143,7 @@
                 const sw = bounds.getSouthWest();
                 const latDiff = Math.abs(ne.lat - sw.lat);
                 const lngDiff = Math.abs(ne.lng - sw.lng);
-  
+    
                 // Adjust zoom based on bounds size
                 if (latDiff < 0.0001 && lngDiff < 0.0001) {
                   this.map.setView(center, 18);
@@ -159,16 +157,16 @@
                   this.map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
                 }
               }
-  
+    
               // Hide loading spinner
               this.loading = false;
             };
-  
+    
             reader.onerror = () => {
               console.error("Error reading file");
               this.loading = false;
             };
-  
+    
             reader.readAsText(file);
           }, 50);
         });
@@ -240,16 +238,13 @@
     margin-bottom: 10px;
   }
   
-  /* Loading indicator container */
+  /* Loading indicator (spinner only) */
   .loading-indicator {
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
   }
   
-  /* Spinner (the only loading indicator now) */
   .spinner {
     width: 30px;
     height: 30px;
@@ -280,3 +275,4 @@
     cursor: pointer;
   }
   </style>
+  
