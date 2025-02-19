@@ -1,12 +1,9 @@
 <!-- MapView.vue -->
+
 <template>
     <div id="map-container">
-      
       <!-- Coordinate Display -->
       <div id="coordinate-display">
-        
-        <!-- Lat: {{ cursorLat.toFixed(6) }} | Lon: {{ cursorLng.toFixed(6) }} -->
-        
         Lat: {{ cursorLat.toFixed(3) }} | Lon: {{ cursorLng.toFixed(3) }}
       </div>
       
@@ -69,7 +66,9 @@
           "Google Satellite": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
           "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
           "CartoDB Dark Matter": "http://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-          "OpenTopoMap": "https://tile.opentopomap.org/{z}/{x}/{y}.png"
+          // "OpenTopoMap": "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+          // New basemap option
+          "World Topo Map": "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
         }
       };
     },
@@ -244,8 +243,6 @@
     color: #fff;
     border-color: #007bff;
   }
-  
-  /* Dropdown for tiles (removed since custom basemap options are used) */
   
   /* Coordinate display */
   #coordinate-display {
