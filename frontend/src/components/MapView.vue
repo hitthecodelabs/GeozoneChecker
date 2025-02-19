@@ -4,7 +4,10 @@
       
       <!-- Coordinate Display -->
       <div id="coordinate-display">
-        Lat: {{ cursorLat.toFixed(6) }} | Lon: {{ cursorLng.toFixed(6) }}
+        
+        <!-- Lat: {{ cursorLat.toFixed(6) }} | Lon: {{ cursorLng.toFixed(6) }} -->
+        
+        Lat: {{ cursorLat.toFixed(3) }} | Lon: {{ cursorLng.toFixed(3) }}
       </div>
       
       <!-- File Upload Input with ref -->
