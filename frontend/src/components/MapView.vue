@@ -63,12 +63,10 @@
         selectedTile: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         tileLayers: {
           "OpenStreetMap": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "World Topo Map": "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
           "Google Satellite": "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
           "Esri Satellite": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
           "CartoDB Dark Matter": "http://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-          // "OpenTopoMap": "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-          // New basemap option
-          "World Topo Map": "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
         }
       };
     },
