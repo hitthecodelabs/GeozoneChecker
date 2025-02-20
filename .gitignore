@@ -1,10 +1,12 @@
 # Ignore environment and dependencies
+.env
+__pycache__/
 backend/
 env_zones/
 GeozoneChecker/
-venv/
 node_modules/
-__pycache__/
-.env
+notebooks/
+protected_zones/
 uploads/
+venv/
 
