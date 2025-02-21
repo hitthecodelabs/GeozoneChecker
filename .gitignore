@@ -1,5 +1,6 @@
 # Ignore environment and dependencies
 .env
+app.py
 __pycache__/
 env_zones/
 GeozoneChecker/

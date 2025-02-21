@@ -1,13 +1,19 @@
 ### app.py
 
-from flask import Flask, request, jsonify, send_file
-import geopandas as gpd
-from shapely.geometry import shape
 import os
-from werkzeug.utils import secure_filename
 import pandas as pd
+import geopandas as gpd
+
+import psycopg2
+import psycopg2.extras
+
+from shapely.geometry import shape
+from werkzeug.utils import secure_filename
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Folder to store uploaded files
 UPLOAD_FOLDER = "uploads"
@@ -64,6 +70,52 @@ def upload_file():
             return jsonify({"error": str(e)}), 500
     
     return jsonify({"error": "Invalid file type"}), 400
+
+# Function to get a database connection
+def get_db_connection():
+    return psycopg2.connect(
+        host="127.0.0.1",
+        database="prediosql",
+        user="jpaul",
+        password="1 de3fr41."  # Use your plain password here
+    )
+
+@app.route("/predio", methods=["GET"])
+def get_predio():
+    # Get the 'codigo_cat' parameter from the query string
+    codigo_cat = request.args.get('codigo_cat')
+    if not codigo_cat:
+        return jsonify({"error": "Missing codigo_cat parameter"}), 400
+
+    try:
+        conn = get_db_connection()
+        # Use DictCursor so that results come back as a dictionary
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+        # Define the query; ST_AsText converts the geometry to WKT
+        query = """
+            SELECT fid, codigo_cat, uso_de_edi, lindero_no, lindero_su, 
+                   lindero_es, lindero_oe, longitud_n, longitud_s, 
+                   longitud_e, longitud_o, area_escri, calle, shape_area, 
+                   shape_length, ST_AsText(geom) AS geom, fecha_registro
+            FROM predios
+            WHERE codigo_cat = %s
+            LIMIT 1;
+        """
+        cursor.execute(query, (codigo_cat,))
+        record = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if record is None:
+            return jsonify({"error": "No record found for the given codigo_cat"}), 404
+
+        # Convert record (a DictRow) to a plain dictionary and return as JSON
+        return jsonify(dict(record))
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)

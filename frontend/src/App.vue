@@ -1,19 +1,33 @@
+<!-- App.vue -->
+
 <template>
   <div id="app">
     <h1>GIS Map - Environmental Protection Zones</h1>
-    <MapView />
-    <UploadFile />
+    <MapView :predioPolygon="predioPolygon" />
+    <!-- Pass the event from PredioSearch to update the polygon -->
+    <PredioSearch @update-polygon="handleUpdatePolygon" />
   </div>
 </template>
 
 <script>
 import MapView from "./components/MapView.vue";
-// import UploadFile from "./components/UploadFile.vue";
+import PredioSearch from "./components/PredioSearch.vue";
 
 export default {
+  name: "App",
   components: {
     MapView,
-    // UploadFile
+    PredioSearch
+  },
+  data() {
+    return {
+      predioPolygon: null
+    };
+  },
+  methods: {
+    handleUpdatePolygon(geojson) {
+      this.predioPolygon = geojson;
+    }
   }
 };
 </script>
