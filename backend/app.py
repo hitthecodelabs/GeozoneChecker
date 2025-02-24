@@ -6,10 +6,14 @@ import geopandas as gpd
 import psycopg2
 import psycopg2.extras
 
+from dotenv import load_dotenv
 from shapely.geometry import shape
 from werkzeug.utils import secure_filename
+
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -73,10 +77,10 @@ def upload_file():
 # Function to get a database connection
 def get_db_connection():
     return psycopg2.connect(
-        host="127.0.0.1",
-        database="prediosql",
-        user="jpaul",
-        password="1 de3fr41."
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
 
 @app.route("/predio", methods=["GET"])
