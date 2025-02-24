@@ -2,17 +2,17 @@
 
 <template>
   <div class="predio-search">
-    <h2>Search Predio by Catastral Code</h2>
+    <h2>Buscar Predio con Código catastral</h2>
     <div class="search-form">
       <input
-        v-model="codigoCat"
-        placeholder="Enter catastral code"
+        v-model="col_7a9f2b3c"
+        placeholder="Ingrese código catastral"
         @keyup.enter="searchPredio"
       />
       <button @click="searchPredio">Search</button>
     </div>
 
-    <div v-if="loading" class="loading">Loading...</div>
+    <div v-if="loading" class="loading">Cargando...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else-if="predio">
       <h3>Predio Details:</h3>
@@ -35,14 +35,14 @@
 </template>
 
 <script>
-import { getPredioByCodigoCat } from "@/api";
-import wkt from "wellknown"; // This converts WKT to GeoJSON
+import { getPredioByCol7a9f2b3c } from "@/api"; // Updated API function
+import wkt from "wellknown";
 
 export default {
   name: "PredioSearch",
   data() {
     return {
-      codigoCat: "",
+      col_7a9f2b3c: "",
       predio: null,
       loading: false,
       error: null
@@ -50,20 +50,20 @@ export default {
   },
   methods: {
     async searchPredio() {
-      if (!this.codigoCat) {
-        this.error = "Please enter a catastral code";
+      if (!this.col_7a9f2b3c) {
+        this.error = "Favor, ingrese un código válido.";
         return;
       }
       this.loading = true;
       this.error = null;
       this.predio = null;
       try {
-        const data = await getPredioByCodigoCat(this.codigoCat);
+        const data = await getPredioByCol7a9f2b3c(this.col_7a9f2b3c);
         this.predio = data;
-        // Convert the WKT geometry to GeoJSON
-        if (data.geom) {
-          const geojson = wkt(data.geom);
-          // Emit an event so the parent (App.vue) can update the map
+
+        // Convert WKT geometry to GeoJSON
+        if (data.col_f7e6d5c4) {
+          const geojson = wkt(data.col_f7e6d5c4);
           this.$emit("update-polygon", geojson);
         }
       } catch (err) {
