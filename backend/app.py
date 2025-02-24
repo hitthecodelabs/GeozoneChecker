@@ -76,12 +76,12 @@ def get_db_connection():
         host="127.0.0.1",
         database="prediosql",
         user="jpaul",
-        password="1 de3fr41."  # Use your plain password here
+        password="1 de3fr41."
     )
 
 @app.route("/predio", methods=["GET"])
 def get_predio():
-    # Get the hashed version of 'codigo_cat' from the query string
+    
     col_7a9f2b3c_value = request.args.get('col_7a9f2b3c')  # Was 'codigo_cat'
     if not col_7a9f2b3c_value:
         return jsonify({"error": "Missing col_7a9f2b3c parameter"}), 400
