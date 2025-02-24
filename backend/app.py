@@ -90,7 +90,6 @@ def get_predio():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         
-        # Query using anonymized column names
         query = """
             SELECT col_d41d8cd9, col_f72e3a4b, col_7a9f2b3c, col_1d3e4a9f, col_a2b3c4d5, col_b4c3d2e1, 
                    col_d5e4c3b2, col_c1d2e3f4, col_8d9e7c6b, col_9c8d7e6f, 
