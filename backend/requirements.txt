@@ -2,6 +2,7 @@ blinker==1.9.0
 certifi==2025.1.31
 click==8.1.8
 Flask==3.1.0
+Flask-Cors==5.0.0
 GeoAlchemy2==0.17.1
 geopandas==1.0.1
 greenlet==3.1.1
@@ -15,6 +16,7 @@ psycopg2-binary==2.9.10
 pyogrio==0.10.0
 pyproj==3.7.1
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2025.1
 shapely==2.0.7
 six==1.17.0
