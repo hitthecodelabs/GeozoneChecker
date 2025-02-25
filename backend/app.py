@@ -83,10 +83,10 @@ def get_db_connection():
         password=os.getenv("DB_PASSWORD")
     )
 
-@app.route("/predio", methods=["GET"])
+@app.route("/search", methods=["GET"])
 def get_predio():
     
-    col_7a9f2b3c_value = request.args.get('col_7a9f2b3c')  # Was 'codigo_cat'
+    col_7a9f2b3c_value = request.args.get('col_7a9f2b3c')
     if not col_7a9f2b3c_value:
         return jsonify({"error": "Missing col_7a9f2b3c parameter"}), 400
 
